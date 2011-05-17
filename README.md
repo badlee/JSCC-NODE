@@ -18,7 +18,7 @@ For all documentation read doc file in doc/
 
 ## HOW TO USE
 	
-node jscc.js [options] filename
+	node jscc.js [options] filename
 
 ## OPTIONS
 
@@ -38,8 +38,8 @@ node jscc.js [options] filename
 
 	For sample grammar see par/ folder.
 	You will found:
-	- **dragon.par** : Port of my own language to javascript (port is partial)
-	- **php.par**    : Grammar from phype project (port of php is partial)
-	- **ruby.par**   : Grammar from phype project (port of ruby is partial)
-	- **calc.par**   : Calculator grammar from JS/CC sample
-	- **xpl.par**	 : gramar for eXample Programming Language from JS/CC
+	- dragon.par : Port of my own language to javascript (port is partial)
+	- php.par    : Grammar from phype project (port of php is partial)
+	- ruby.par   : Grammar from phype project (port of ruby is partial)
+	- calc.par   : Calculator grammar from JS/CC sample
+	- xpl.par	 : gramar for eXample Programming Language from JS/CC
