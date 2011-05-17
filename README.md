@@ -36,10 +36,10 @@ node jscc.js [options] filename
 
 ## Examples
 
-For sample grammar see par/ folder.
-You will found:
-- **dragon.par** : Port of my own language to javascript (port is partial)
-- **php.par**    : Grammar from phype project (port of php is partial)
-- **ruby.par**   : Grammar from phype project (port of ruby is partial)
-- **calc.par**   : Calculator grammar from JS/CC sample
-- **xpl.par**	 : gramar for eXample Programming Language from JS/CC
+	For sample grammar see par/ folder.
+	You will found:
+	- **dragon.par** : Port of my own language to javascript (port is partial)
+	- **php.par**    : Grammar from phype project (port of php is partial)
+	- **ruby.par**   : Grammar from phype project (port of ruby is partial)
+	- **calc.par**   : Calculator grammar from JS/CC sample
+	- **xpl.par**	 : gramar for eXample Programming Language from JS/CC
