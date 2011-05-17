@@ -1,0 +1,22 @@
+{
+	  "name": "jscc-node"
+	, "description": "JSCC assembling a complete compiler for nodejs"
+	, "version": "0.3.0"
+	, "author": "Badlee Oshimin <badlee.oshimin@gmail.com>"
+	, "contributors": []
+	, "repository": {
+		  "type": "git"
+		, "url": "git://github.com/badlee/JSCC-NODE.git"
+	}
+	, "bugs": {
+		  "mail": "badlee.oshimin@gmail.com"
+	}
+	, "os": [ "linux", "darwin", "freebsd", "win32" ]
+	, "directories": {  }
+	, "main": "./jscc.js"
+	, "engines": { "node": ">=0.4.7" }
+	, "licenses": [{
+		  "type": "ARTISTIC 2.0"
+		, "url": "http://www.opensource.org/licenses/artistic-license-2.0"
+	}]
+}
