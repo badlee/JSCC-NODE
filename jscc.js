@@ -4527,7 +4527,7 @@ function help()
 	help += "       -w   --warnings           Print warnings\n";
 	help += "       -c   --compress           Compress output source using PACKER BASE62\n";
 	help += "       -s   --shrink             Shrink variables of output source using PACKER\n";
-	help += "       -cs   --compress-shrink   Shrink variables of output source and Compress output source using PACKER BASE62\n";
+	help += "       -cs  --compress-shrink   Shrink variables of output source and Compress output source using PACKER BASE62\n";
 	help += "       -m   --minimize           Minimize output source using PACKER\n";
 		
 	_print( help );

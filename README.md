@@ -31,7 +31,7 @@ For all documentation read doc file in doc/
 	-w   --warnings           Print warnings
 	-c   --compress           Compress output source using PACKER BASE62
 	-s   --shrink             Shrink variables of output source using PACKER
-	-cs   --compress-shrink   Shrink variables of output source and Compress output source using PACKER BASE62
+	-cs  --compress-shrink   Shrink variables of output source and Compress output source using PACKER BASE62
 	-m   --minimize           Minimize output source using PACKER
 
 ## Examples
