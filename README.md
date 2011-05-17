@@ -14,7 +14,7 @@ To use JS/CC and for understanding its internals and behaviors, some knowledge o
 
 ## DOCUMENTATION
 
-For all documentation read the documentation file in doc/
+For all documentation read the `jscc_manual.pdf` in doc/
 
 ## HOW TO USE
 	
