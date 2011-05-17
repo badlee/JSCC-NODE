@@ -1,6 +1,6 @@
 # JS/CC-NODE
 
-This project is a port of [JS/CC](http://jscc.jmksf.com) to nodejs,
+This project is a port of [JS/CC](http://jscc.jmksf.com) to nodejs >= 0.4.7,
 
 ## INTRODUCTION
 
