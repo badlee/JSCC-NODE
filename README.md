@@ -26,7 +26,7 @@ For all documentation read doc file in doc/
 	-i   --version            Print version and copyright
 	-o   --output <file>      Save output source to <file>
 	-p   --prefix <prefix>    Use <prefix> as sequence pre-fixing methods and variables
-	-t   --template <file>    Use template file <file> as parser template by defalut driver_node.js_
+	-t   --template <file>    Use template file <file> as parser template (by defalut driver_node.js_ located in jscc.js folder)
 	-v   --verbose            Run in verbose mode
 	-w   --warnings           Print warnings
 	-c   --compress           Compress output source using PACKER BASE62
@@ -38,8 +38,8 @@ For all documentation read doc file in doc/
 
 	For sample grammar see par/ folder.
 	You will found:
-	- dragon.par : Port of my own language to javascript (port is partial)
-	- php.par    : Grammar from phype project (port of php is partial)
-	- ruby.par   : Grammar from phype project (port of ruby is partial)
+	- dragon.par : Port of my own language to javascript (port in progress...)
+	- php.par    : Grammar from phype project (port of php in progress...)
+	- ruby.par   : Grammar from phype project (port of ruby in progress)
 	- calc.par   : Calculator grammar from JS/CC sample
-	- xpl.par	 : gramar for eXample Programming Language from JS/CC
+	- xpl.par	 : Grammar for eXample Programming Language from JS/CC

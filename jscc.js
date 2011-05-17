@@ -4521,16 +4521,14 @@ function help()
 	help += "       -h   --help               Print this usage help\n";
 	help += "       -i   --version            Print version and copyright\n";
 	help += "       -o   --output <file>      Save output source to <file>\n";
-	help += "       -p   --prefix <prefix>    Use <prefix> as sequence pre-\n";
-	help += "                                 fixing methods and variables\n";
-	help += "       -t   --template <file>    Use template file <file> as\n";
-	help += "                                 parser template\n";
+	help += "       -p   --prefix <prefix>    Use <prefix> as sequence pre-fixing methods and variables\n";
+	help += "       -t   --template <file>    Use template file <file> as parser template\n";
 	help += "       -v   --verbose            Run in verbose mode\n";
 	help += "       -w   --warnings           Print warnings\n";
-	help += "       -c   --compress           Compress output source using BASE62\n";
-	help += "       -s   --shrink             Shrink variables of output source\n";
-	help += "       -cs   --compress-shrink   Shrink variables of output source and Compress output source using BASE62\n";
-	help += "       -m   --minimize           Minimize output source\n";
+	help += "       -c   --compress           Compress output source using PACKER BASE62\n";
+	help += "       -s   --shrink             Shrink variables of output source using PACKER\n";
+	help += "       -cs   --compress-shrink   Shrink variables of output source and Compress output source using PACKER BASE62\n";
+	help += "       -m   --minimize           Minimize output source using PACKER\n";
 		
 	_print( help );
 }
