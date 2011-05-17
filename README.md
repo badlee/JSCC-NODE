@@ -1,6 +1,6 @@
 # JS/CC-NODE
 
-This project is a port of JS/CC to nodejs,
+This project is a port of [JS/CC](http://jscc.jmksf.com) to nodejs,
 
 ## INTRODUCTION
 
@@ -12,7 +12,36 @@ JS/CC itself has been entirely written in ECMAScript so it can be executed in ma
 
 To use JS/CC and for understanding its internals and behavior, some knowledge of context-free grammars, bottom-up parsing techniques and compiler construction theory, in general, is assumed.
 
-**In sample (/par)
-	PHP
-	RUBY
-	DRAGON(my own language)
+## DOCUMENTATION
+
+	For all documentation read doc file in doc/
+
+## HOW TO USE
+	
+node jscc.js [options] filename
+
+## OPTIONS
+
+-h   --help               Print this usage help
+-i   --version            Print version and copyright
+-o   --output <file>      Save output source to <file>
+-p   --prefix <prefix>    Use <prefix> as sequence pre-
+                         fixing methods and variables
+-t   --template <file>    Use template file <file> as
+                         parser template
+-v   --verbose            Run in verbose mode
+-w   --warnings           Print warnings
+-c   --compress           Compress output source using BASE62
+-s   --shrink             Shrink variables of output source
+-cs   --compress-shrink   Shrink variables of output source and Compress output source using BASE62
+-m   --minimize           Minimize output source
+
+## Examples
+
+For sample grammar see par/ folder.
+You will found
+- dragon.par : Port of my own language to javascript (port is partial)
+- php.par    : Grammar from phype project (port of php is partial)
+- ruby.par   : Grammar from phype project (port of ruby is partial)
+- calc.par   : Calculator grammar from JS/CC sample
+- xpl.par	 : gramar for eXample Programming Language from JS/CC
