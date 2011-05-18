@@ -28,7 +28,7 @@ of the Artistic License. Please see ARTISTIC for more information.
 */
 
 //Program version info 
-var JSCC_VERSION			= "0.30";
+var JSCC_VERSION			= "0.3.0";
 
 //Symbol types
 var SYM_NONTERM				= 0;
@@ -4498,11 +4498,14 @@ function version()
 {
 	var info = new String();
 
-	info += "JS/CC v" + JSCC_VERSION + ": A LALR(1) Parser and Lexer " +
+	info += "\nJS/CC v" + JSCC_VERSION + ": A LALR(1) Parser and Lexer " +
 				"Generator written in JavaScript\n";
 	info += "Copyright (C) 2007, 2008 by J.M.K S.F. Software Technologies," +
 				"Jan Max Meyer\n";
 	info += "http://jscc.jmksf.com ++ jscc@jmksf.com\n\n";
+	
+	info += "Ported by Badlee Oshimin ++ badlee.oshimin@gmail.com " +
+				"http://github.com/badlee/JSCC-NODE.\n\n";
 	
 	info += "You may use, modify and distribute this software under the " +
 				"terms and conditions\n";
@@ -4527,7 +4530,7 @@ function help()
 	help += "       -w   --warnings           Print warnings\n";
 	help += "       -c   --compress           Compress output source using PACKER BASE62\n";
 	help += "       -s   --shrink             Shrink variables of output source using PACKER\n";
-	help += "       -cs  --compress-shrink   Shrink variables of output source and Compress output source using PACKER BASE62\n";
+	help += "       -cs  --compress-shrink    Shrink variables of output source and Compress output source\n";
 	help += "       -m   --minimize           Minimize output source using PACKER\n";
 		
 	_print( help );

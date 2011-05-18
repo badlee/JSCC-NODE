@@ -31,7 +31,7 @@ For all documentation read the `jscc_manual.pdf` in doc/
 	-w   --warnings           Print warnings
 	-c   --compress           Compress output source using PACKER BASE62
 	-s   --shrink             Shrink variables of output source using PACKER
-	-cs  --compress-shrink   Shrink variables of output source and Compress output source using PACKER BASE62
+	-cs  --compress-shrink    Shrink variables of output source and Compress output source
 	-m   --minimize           Minimize output source using PACKER
 
 ## Examples
@@ -39,7 +39,7 @@ For all documentation read the `jscc_manual.pdf` in doc/
 	For sample grammar see par/ folder.
 	You will find:
 	- dragon.par : Port of my own language (port in progress...)
-	- php.par    : Grammar from phype project (port of php in progress...)
-	- ruby.par   : Grammar from 8ball project (port of ruby in progress)
+	- php.par    : PHP grammar from phype project (port of php in progress...)
+	- ruby.par   : Ruby grammar from 8ball project (port of ruby in progress...)
 	- calc.par   : Calculator grammar from JS/CC sample
-	- xpl.par	 : Grammar for eXample Programming Language from JS/CC
+	- xpl.par	 : Grammar for eXample Programming Language from JS/CC sample
