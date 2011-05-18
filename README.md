@@ -38,8 +38,8 @@ For all documentation read the `jscc_manual.pdf` in doc/
 
 	For sample grammar see par/ folder.
 	You will find
-	- dragon.par : Port of my own language (port in progress...)
-	- php.par    : PHP grammar from phype project (port of php in progress...)
-	- ruby.par   : Ruby grammar from 8ball project (port of ruby in progress...)
+	- dragon.par : My own language (Implementation in progress...)
+	- php.par    : PHP grammar from phype project (implementation of php in progress...)
+	- ruby.par   : Ruby grammar from 8ball project (implementation of ruby in progress...)
 	- calc.par   : Calculator grammar from JS/CC sample
 	- xpl.par	 : Grammar for eXample Programming Language from JS/CC sample
