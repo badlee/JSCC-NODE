@@ -37,7 +37,7 @@ For all documentation read the `jscc_manual.pdf` in doc/
 ## Examples
 
 	For sample grammar see par/ folder.
-	You will find:
+	You will find
 	- dragon.par : Port of my own language (port in progress...)
 	- php.par    : PHP grammar from phype project (port of php in progress...)
 	- ruby.par   : Ruby grammar from 8ball project (port of ruby in progress...)
