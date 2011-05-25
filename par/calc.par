@@ -1,5 +1,5 @@
 /~
-	Expression calculator written in JS/CC (Rhino/Spidermonkey/V8 version)
+	Expression calculator written in JS/CC (nodejs)
 ~/
 
 /~
@@ -9,14 +9,26 @@
 
 	'\('			/~ Non-associative tokens ~/
 	'\)'
-	'[0-9]+'		INT			[* %match = parseInt( %match );	*]
+	'[0-9]+\.?[0-9]*'		NUMBER			[* %match = parseFloat( %match );	*]
+	'0x[0-9A-Fa-f]+'		Hex				[* %match = parseFloat( %match );	*]
+	'PI'
+	'SQRT'
+	'ABS'
+	'FLOOR'
+	'CEIL'
+	'RAND'
+	'ROUND'
+	'MAX'
+	'MIN'
 	;
 
 <	'\+'			/~ Left-associative tokens, lowest precedence ~/
-	'\-';
+	'\-'
+	'^';
 	
 <	'\*'			/~ Left-associative tokens, highest precedence ~/
 	'/';
+
 
 ##
 
@@ -34,11 +46,22 @@ p:	e								[* console.log( %1 );   				*]
 ~/
 e: 	e '+' e							[* %% = %1 + %3; 				*]
 	| e '-' e						[* %% = %1 - %3; 				*]
+	| e '^' e						[* %% = Math.pow(%1, %3);		*]
 	| e '*' e						[* %% = %1 * %3; 				*]
 	| e '/' e						[* %% = %1 / %3; 				*]
 	| '-' e			&'*'			[* %% = %2 * -1;				*]
+	| PI							[* %% = Math.PI; 				*]
+	| MAX e e						[* %% = Math.max(%2,%3);		*]
+	| MIN e e						[* %% = Math.min(%2,%3);		*]
+	| SQRT e						[* %% = Math.sqrt(%2);			*]
+	| FLOOR e						[* %% = Math.floor(%2);			*]
+	| CEIL e						[* %% = Math.ceil(%2);			*]
+	| ABS e							[* %% = Math.abs(%2);			*]
+	| ROUND e						[* %% = Math.round(%2);			*]
+	| RAND							[* %% = Math.random();			*]
 	| '(' e ')'						[* %% = %2; 					*]
-	| INT
+	| NUMBER
+	| Hex
 	;
 
 /~

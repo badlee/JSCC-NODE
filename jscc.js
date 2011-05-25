@@ -1,13 +1,13 @@
 print = require("sys").puts;
-_print = function(str){console.log(str)};
-_error = function(str){console.log("___ ERROR ___\n"+str)};
-_warning = function(str){console.log("--- WARN ---\n"+str)};
-alert = function(str){console.log("=== ALERT ===\n"+str)};
+_print = function(str){console.log("__PRINT__\n"+str);};
+_error = function(str){console.log("___ ERROR ___\n"+str);};
+_warning = function(str){console.log("--- WARN ---\n"+str);};
+alert = function(str){console.log("=== ALERT ===\n"+str);};
 _quit = process.exit;
 read_file = function(str){return require("fs").readFileSync(str).toString("utf-8");};
 write_file = require("fs").writeFileSync;
 process.on('uncaughtException', function (err) {
-  console.log(err.stack);
+  console.log("__ERROR__\n"+err.stack);
 });
 
 /* -HEADER----------------------------------------------------------------------

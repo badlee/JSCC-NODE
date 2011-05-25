@@ -17,14 +17,32 @@
 	
 	
 [*
-
+process.stdin.resume();
+read_string = function(){
+		var stdIn = {
+			start : "",
+			data  : ""
+		};
+		process.stdin.resume();
+		process.stdin.removeAllListeners();
+		process.stdin.setEncoding('utf8');
+		process.stdin.on('data', function (chunk) { process.stdout.write('data: ' + chunk); });
+		var i=0;
+		while(stdIn.start==""){console.log(i++);};
+		console.log("ds : "+stdIn.start);
+		process.stdin.pause();
+		var data = stdIn.start;
+		stdIn.start = "";
+		return data;
+};
+process.stdin.pause();
 //Structs
 function NODE()
 {
 	var type;
 	var value;
 	var children;
-}
+};
 
 //Defines
 var NODE_OP		= 0;

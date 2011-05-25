@@ -2,6 +2,28 @@
 	Dragon.JS
 	Port to VM Dragon.PHP in javascript
 	(c) Badinga Badinga Ulrich Arthur 2008-2011
+	Work
+		[x] GESTION DES VARIABLES
+			foo = 0
+			foo++;
+			foo.bar = 13;
+			foo = bar = 12;
+			foo = bar / 2;
+			foo = 0x12;
+		[ ] CARD
+			a = card.create();
+			a[] = 
+		[x] BOUCLE FOR, WHILE, DO WHILE
+			
+		[x] CONDITION IF, IF ESLE
+		[-] BREAK
+		[ ] SWITCH CASE
+		[ ] CODE, FUNCTION
+		[ ] PROTOTYPE
+		[ ] FOR IN 
+		[ ] GESTION NEW TYPE
+		[ ] IMPORT, INCLUDE
+		
 ~/
 
 
@@ -19,6 +41,15 @@ function NODE()
 var NODE_OP	= 0;
 var NODE_VAR	= 1;
 var NODE_CONST	= 2;
+var NODE_STRING	= 3;
+var NODE_FLOAT	= 4;
+var NODE_OPERATOR = 5;
+var NODE_BOOLEAN = 6;
+
+var OPERATOR_PRE = 0;
+var OPERATOR_POST = 1;
+var OPERATOR_BOTH = 2;
+var OPERATOR_BRAC = 3;
 
 var OP_NONE	= -1;
 var OP_ASSIGN	= 0;
@@ -26,8 +57,8 @@ var OP_IF	= 1;
 var OP_IF_ELSE	= 2;
 var OP_WHILE_DO	= 3;
 var OP_DO_WHILE	= 4;
-var OP_WRITE	= 5;
-var OP_READ	= 6;
+var OP_PROTOTYPE	= 5;
+var OP_IMPORT	= 6;
 var OP_ECHO	= 7;
 
 var OP_EQU	= 10;
@@ -41,15 +72,21 @@ var OP_SUB	= 17;
 var OP_DIV	= 18;
 var OP_MUL	= 19;
 var OP_NEG	= 20;
+var OP_NOT	= 21;
+var OP_MODULO = 22;
+var OP_BITD = 23;
+var OP_BITG = 24;
 
 var OP_TAIRNAIRE	= 30;
 var OP_BINAIRE		= 31;
-var OP_FOR		= 32;
+var OP_FOR			= 32;
 var OP_FORIN		= 33;
 var OP_INCR_POST	= 34;
 var OP_INCR_PRE		= 35;
 var OP_DECR_POST	= 36;
 var OP_DECR_PRE		= 37;
+var OP_CODE			= 38;
+var OP_FUNCTION		= 39;
 
 //Management functions
 function createNode( type, value, childs )
@@ -65,43 +102,625 @@ function createNode( type, value, childs )
 	return n;
 }
 
-var v_names = new Array();
-var v_values = new Array();
+/*
+	Gestion des variables
+*/
 
-//Interpreting function
-function letvar( vname, value )
-{
-	var i;
-	for( i = 0; i < v_names.length; i++ )
-		if( v_names[i].toString() == vname.toString() )
-			break;
-		
-	if( i == v_names.length )
-	{
-		v_names.push( vname );
-		v_values.push( 0 );
-	}
+function drgVar(name){
+	this.name = name || "";
+	this.readOnly = false; //lecture seul
+	this.protect = false; //protege contre l'ajout d'enfant
+	this.val = null; //valeur de la variable
+	this.code = null; //code executable portant le nom de la variable
+	this.fn = null; //function executable portant le nom de la variable
+	this.prototype = null; //type de donnée portant le nom de la variable
 	
-	v_values[i] = value;
+	/*
+		example prototype
+		SMS from type{
+			_init = function(){
+				//validator function
+			};
+			operator = {
+				+ = function(type,b){
+					
+				};
+				- = function(type,b){
+					
+				};
+				* = function(type,b){
+					
+				};
+				/ = function(type,b){
+					
+				};
+			}
+			Static = {
+				someFn=function(){
+					//some code
+				},
+				someAttr : //somevalue
+			}
+		}
+	*/
+	this.propretie = {
+		"this" : this,
+		"undefined":{
+			getVal:function(){return undefined;}
+		}
+	};
+}
+drgVar.prototype = {
+	setReadOnly : function(b){
+		return this.readOnly = !!b;
+	},
+	setProp : function(b,val,readOnly){
+		if(b){
+			//inssensible à la case
+			b = b.toLowerCase();
+			var p = b.split(".");
+			var i=p[0];
+			delete p[0];
+			p = p.filter(function(a){return a;}).join(".");
+			if(this.propretie[i] && p!==''){
+				return this.propretie[i].setProp(p,val,readOnly);
+			}else if(this.propretie[i] && p===''){
+				if(val!==undefined)
+					this.propretie[i].setVal(val);
+				this.propretie[i].setReadOnly(readOnly);
+				return this.propretie[i].getVal();
+			}else if(p==''){
+				if(this.protect) return null;
+				this.propretie[i] = new drgVar(i);
+				if(val!==undefined)
+					this.propretie[i].setVal(val);
+				this.propretie[i].setReadOnly(readOnly);
+				return this.propretie[i].getVal();
+			}
+		}
+		return null;
+	},
+	getProp: function(b){
+		if(b){
+			//inssensible à la case
+			b = b.toLowerCase();
+			var p = b.split(".");
+			var i=p[0];
+			delete p[0];
+			p = p.filter(function(a){return a;}).join(".");
+			if(this.propretie[i] && p!==''){
+				return this.propretie[i].getProp(p);
+			}else if(this.propretie[i] && p===''){
+				return this.propretie[i].getVal();
+			}
+		}
+		return null;
+	},
+	getVal : function(){
+		return this.val===undefined ? null: this.val;
+	},
+	setVal : function(v){
+		if(this.readOnly) return v;
+		return this.val = v===undefined ? null: v;
+	},
+	getFn : function(){
+		return this.fn;
+	},
+	setFn : function(v){
+		if(this.readOnly) return v;
+		return this.fn = v===undefined ? null: v;
+	},
+	getCode : function(){
+		return this.code;
+	},
+	setCode : function(v){
+		if(this.readOnly) return v;
+		return this.code = v===undefined ? null: v;
+	},
+	getPrototype : function(){
+		return this.fn;
+	},
+	setPrototype : function(v){
+		if(this.readOnly) return v;
+		if(this.prototype) return this.prototype;
+		return this.prototype = v===undefined ? null: v;
+	},
+};
+var _global = new drgVar("global");
+_global.setReadOnly(true);
+//Interpreting function
+function letvar( vname, value , readOnly)
+{
+	return _global.setProp(vname, value === undefined ? null : value , readOnly || false)
 }
 
 function getvar( vname )
 {
-	var i;
-	for( i = 0; i < v_names.length; i++ )
-		if( v_names[i].toString() == vname.toString() )
-			return v_values[i];
-			
-	return 0;
+	return _global.getProp(vname);
 }
+letvar( "true", true , true);
+letvar( "false", false , true);
+letvar( "NaN", NaN , true);
+letvar( "null", null , true);
+letvar( "test", [0,1,2,3] , true);
+letvar( "test2", {a:12,b:266} , true);
+
+/*Just for dragon operator define*/
+//operator "operator ?"
+Array.prototype["@"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+			return this.shift();
+			break;
+		case OPERATOR_PRE:
+			return this.pop();
+			break;
+		case OPERATOR_BOTH:
+			return this.splice(b,1).pop();
+			break;
+	}
+};
+Object.prototype["@"] = function(b1,b2,b){
+console.log("Object : operator ?");
+	switch(b1+b2){
+		case '[]':
+			return this[b];
+			break;
+	}
+}
+//operator +
+Number.prototype["+"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return this+1;
+			break;
+		case OPERATOR_BOTH:
+			return this+b;
+			break;
+	}
+};
+String.prototype["+"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return this+"";
+			break;
+		case OPERATOR_BOTH:
+			return this+b;
+			break;
+	}
+};
+String.prototype["°"] = function(type,b){
+	var self = this;
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return self = "";
+			break;
+		case OPERATOR_BOTH:
+			return self = b;
+			break;
+	}
+};
+Boolean.prototype["+"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return !!this;
+			break;
+		case OPERATOR_BOTH:
+			return this&&b;
+			break;
+	}
+};
+//operator -
+Number.prototype["-"] = function (type,b){
+	switch(type){
+		case OPERATOR_POST:
+			return -1*this;
+			break;
+		case OPERATOR_PRE:
+			return this*-1;
+			break;
+		case OPERATOR_BOTH:
+			return this-b;
+			break;
+	}
+};
+Boolean.prototype["-"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+			return !this;
+			break;
+		case OPERATOR_PRE:
+			return false;
+			break;
+		case OPERATOR_BOTH:
+			return this && !b;
+			break;
+	}
+};
+//operator *
+Number.prototype[ "*" ] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this * b;
+			break;
+	}
+};
+Boolean.prototype[ "*" ] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this || b;
+			break;
+	}
+};
+//operator /
+Number.prototype["/"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+			return 1/this;
+			break;
+		case OPERATOR_PRE:
+			return this/1;
+			break;
+		case OPERATOR_BOTH:
+			return this / b;
+			break;
+	}
+};
+Boolean.prototype["/"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return !!this;
+			break;
+		case OPERATOR_BOTH:
+			return this || !b;
+			break;
+	}
+};
+//operator %
+Number.prototype["%"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this % b;
+			break;
+	}
+};
+//operator &&
+Number.prototype["&&"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this && b;
+			break;
+	}
+};
+String.prototype["&&"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this && b;
+			break;
+	}
+};
+Boolean.prototype["&&"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this && b;
+			break;
+	}
+};
+//operator ||
+Number.prototype["||"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this || b;
+			break;
+	}
+};
+String.prototype["||"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this || b;
+			break;
+	}
+};
+Boolean.prototype["||"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this || b;
+			break;
+	}
+};
+//operator >
+Number.prototype[">"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this > b;
+			break;
+	}
+};
+String.prototype[">"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this > b;
+			break;
+	}
+};
+Boolean.prototype[">"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this > b;
+			break;
+	}
+};
+//operator <
+Number.prototype["<"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this < b;
+			break;
+	}
+};
+String.prototype["<"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this < b;
+			break;
+	}
+};
+Boolean.prototype["<"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this < b;
+			break;
+	}
+
+};
+//operator >=
+Number.prototype[">="] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this >= b;
+			break;
+	}
+};
+String.prototype[">="] = function(type,b){	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this >= b;
+			break;
+	}
+};
+Boolean.prototype[">="] = function(type,b){	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this >= b;
+			break;
+	}
+};
+//operator !=
+Number.prototype["!="] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this != b;
+			break;
+	}
+
+};
+String.prototype["!="] = function(type,b){	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this != b;
+			break;
+	}
+};
+Boolean.prototype["!="] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this != b;
+			break;
+	}
+};
+//operator <=
+Number.prototype["<="] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this <= b;
+			break;
+	}
+};
+String.prototype["<="] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this <= b;
+			break;
+	}
+};
+Boolean.prototype["<="] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return null;
+			break;
+		case OPERATOR_BOTH:
+			return this <= b;
+			break;
+	}
+};
+//operator !
+Number.prototype["!"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return !this;
+			break;
+		case OPERATOR_BOTH:
+			return this != b;
+			break;
+	}
+};
+String.prototype["!"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return !this;
+			break;
+		case OPERATOR_BOTH:
+			return this != b;
+			break;
+	}
+};
+Boolean.prototype["!"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+		case OPERATOR_PRE:
+			return !this;
+			break;
+		case OPERATOR_BOTH:
+			return this != b;
+			break;
+	}
+};
+//operator <<
+Number.prototype["<<"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+			return 1<<this;
+			break;
+		case OPERATOR_PRE:
+			return this<<1;
+			break;
+		case OPERATOR_BOTH:
+			return this << b;
+			break;
+	}
+};
+
+//operator >>
+Number.prototype[">>"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+			return 1>>this;
+			break;
+		case OPERATOR_PRE:
+			return this>>1;
+			break;
+		case OPERATOR_BOTH:
+			return this >> b;
+			break;
+	}
+};
+//operator §
+String.prototype["§"] = function(type,b){
+	switch(type){
+		case OPERATOR_POST:
+			break;
+		case OPERATOR_PRE:
+			break;
+		case OPERATOR_BOTH:
+			letvar(this , b);
+			break;
+	}
+	return getvar(this);
+};
 
 function execute( node )
 {
-	var ret = 0;
+	var ret = null;
 	
 	if( !node )
-		return 0;
-		
+		return null;
 	switch( node.type )
 	{
 		case NODE_OP:
@@ -109,34 +728,50 @@ function execute( node )
 			{
 				case OP_NONE:
 					if( node.children[0] )
-						execute( node.children[0] );					
+						ret = execute( node.children[0] );					
 					if( node.children[1] )
 						ret = execute( node.children[1] );
 					break;
 				case OP_INCR_PRE:
-					ret = getvar( node.children[0]);
-					letvar( node.children[0], ret+1 );
+					ret = getvar(node.children[0]);
+					try{
+						letvar( node.children[0], ret[ "+" ](OPERATOR_BOTH,1) );
+					}catch(e){
+						ret = null;
+					}
 					break;
 				case OP_INCR_POST:
-					ret = getvar( node.children[0]) +1 ;
+					try{
+						ret = getvar(node.children[0])[ "+" ](OPERATOR_BOTH,1);
+					}catch(e){
+						ret = null;
+					}
 					letvar( node.children[0], ret );
 					break;
 				case OP_DECR_PRE:
-					ret = getvar( node.children[0]);
-					letvar( node.children[0], ret-1 );
+					ret = getvar(node.children[0]);
+					try{
+						letvar( node.children[0], ret[ "-" ](OPERATOR_BOTH,1) );
+					}catch(e){
+						ret = null;
+					}
 					break;
 				case OP_DECR_POST:
-					ret = getvar( node.children[0]) -1 ;
+					try{
+						ret = getvar(node.children[0])[ "-" ](OPERATOR_BOTH,1);
+					}catch(e){
+						ret = null;
+					}
 					letvar( node.children[0], ret );
 					break;
 				case OP_ASSIGN:
 					letvar( node.children[0], execute( node.children[1] ) );
-					ret = getvar( node.children[0]);
+					ret = getvar(node.children[0]);
 					break;
 				case OP_BINAIRE:
 					if( !execute( node.children[0] ) )
 						letvar( node.children[1], execute( node.children[2] ) );
-					ret = getvar( node.children[1]);
+					ret = execute( node.children[1]);
 					break;
 				case OP_TAIRNAIRE:
 					if( execute( node.children[0] ) )
@@ -146,83 +781,75 @@ function execute( node )
 					break;
 				case OP_IF:
 					if( execute( node.children[0] ) )
-						execute( node.children[1] );
+						ret = execute( node.children[1] );
 					break;
 				case OP_IF_ELSE:
 					if( execute( node.children[0] ) )
-						execute( node.children[1] );
+						ret = execute( node.children[1] );
 					else
 						execute( node.children[2] );
 					break;
 				case OP_WHILE_DO:
-					while( execute( node.children[0] ) )
+					while( ret = execute( node.children[0] ) )
 						execute( node.children[1] );
 					break;
 				case OP_FOR:
-					for(execute( node.children[0] );execute( node.children[1] );execute( node.children[2] )){
+					for(execute( node.children[0] );execute( node.children[1] );ret = execute( node.children[2] )){
 						execute( node.children[3] );
 					}
 					break;
 				case OP_DO_WHILE:
 					do
 						execute( node.children[0] );
-					while( execute( node.children[1] ) );
-					break;
-				case OP_WRITE:
-					alert( execute( node.children[0] ) );
-					break;
-				case OP_READ:
-					letvar( node.children[0].toString(), prompt( "Please enter a value:", "0"  ) );
+					while( ret = execute( node.children[1] ) );
 					break;
 				case OP_ECHO:
-					console.log( node.children[0] );
-					break;
-				case OP_EQU:
-					ret = execute( node.children[0] ) == execute( node.children[1] );
-					break;
-				case OP_NEQ:
-					ret = execute( node.children[0] ) != execute( node.children[1] );
-					break;
-				case OP_GRT:
-					ret = execute( node.children[0] ) > execute( node.children[1] );
-					break;
-				case OP_LOT:
-					ret = execute( node.children[0] ) < execute( node.children[1] );
-					break;
-				case OP_GRE:
-					ret = execute( node.children[0] ) >= execute( node.children[1] );
-					break;
-				case OP_LOE:
-					ret = execute( node.children[0] ) <= execute( node.children[1] );
-					break;
-				case OP_ADD:
-					ret = execute( node.children[0] ) + execute( node.children[1] );
-					break;
-				case OP_SUB:
-					ret = execute( node.children[0] ) - execute( node.children[1] );
-					break;
-				case OP_DIV:
-					ret = execute( node.children[0] ) / execute( node.children[1] );
-					break;
-				case OP_MUL:
-					ret = execute( node.children[0] ) * execute( node.children[1] );
-					break;
-				case OP_NEG:
-					ret = execute( node.children[0] ) * -1;
+					console.log(ret =  execute(node.children[0]) );
 					break;
 			}
 			break;
 			
 		case NODE_VAR:
-			ret = Number( getvar( node.value ) );
+			ret = getvar( node.value );
 			break;
 			
 		case NODE_CONST:
-			ret = Number( node.value );
+			ret = parseInt( node.value );
+			break;
+		case NODE_BOOLEAN:
+			ret = Boolean( node.value );
+			break;
+		case NODE_STRING:
+			ret = String( node.value );
+			break;
+		
+		case NODE_FLOAT:
+			ret = parseFloat( node.value );
+			break;
+		case NODE_OPERATOR:
+			ret = null;
+			try{
+				console.log(JSON.stringify(node));
+				switch(node.value){
+					case OPERATOR_BRAC:
+						ret = execute( node.children[1] )["operator ?"](node.children[0],node.children[1],execute( node.children[2] ));
+						break;
+					case OPERATOR_BOTH:
+						ret = execute( node.children[1] )[node.children[0]](OPERATOR_BOTH,execute( node.children[2] ));
+						break;
+					case OPERATOR_POST:
+						ret = execute( node.children[1] )[node.children[0]](OPERATOR_POST);
+						break;
+					case OPERATOR_PRE:
+						ret = execute( node.children[1] )[node.children[0]](OPERATOR_PRE);
+						break;
+				}
+			}catch(e){
+				console.log(e);
+			}
 			break;
 	}
-	
-	return ret;
+	return ret === undefined ? null : ret;
 }
 
 *]
@@ -231,35 +858,37 @@ function execute( node )
 
 	"IF"
 	"ELSE"
+	"SWITCH"
+	"CASE"
+	"BREAK"
+	"DEFAULT"
 	"WHILE"
 	"DO"
 	"FOR"
 	"IN"
 	"ECHO"
 	"PRINT"
+	"CODE"
+	"FUNCTION"
 	'{'
 	'}'
 	'\?'
 	':'
 	'\?:'
 	';'
+	','
+	'\.\.'
 	'='
-	'=='
-	'!='
-	'<='
-	'>='
-	'>'
-	'<'
-	'\+'
-	'\-'
 	'\+\+'
 	'\-\-'
-	'/'
-	'\*'
+	'\-'
+	'\+'
 	'\('
 	'\)'
 	'#'
-	'[A-Za-z_][A-Za-z0-9_]*'	Identifier
+	'\&\&|\|\||!|%|/|\*|>>|<<|<|>|>=|<=|!=|==|\\|\-\>|\=\>|\:\:|\~|\@|\$|\`|\^|\°|\§|\[|\]|[]' operator
+	'[A-Za-z_]([A-Za-z0-9_]|\.[A-Za-z_])*'	Identifier
+	'0x[0-9A-Fa-f]+'		Hex
 	'((\'[^\']*\')|("[^"]*"))'		String		[*
 											%match = %match.substr(1,%match.length-2);
 											%match = %match.replace( /\\'/g, "'" );
@@ -277,70 +906,124 @@ Program:	Program Stmt			[* execute( %2 ); *]
 Stmt_List:	Stmt_List Stmt			[* %% = createNode( NODE_OP, OP_NONE, %1, %2 ); *]
 		|
 		;
-								
-Stmt:	IF '(' Expression ')' Stmt 		[* %% = createNode( NODE_OP, OP_IF, %3, %5 ); *]
+
+Stmt:	IF '(' Expression ')' Stmt 				[* %% = createNode( NODE_OP, OP_IF, %3, %5 ); *]
 		| IF '(' Expression ')' Stmt ELSE Stmt	[* %% = createNode( NODE_OP, OP_IF_ELSE, %3, %5, %7 ); *]
 		| DO Stmt WHILE '(' Expression ')' ';'	[* %% = createNode( NODE_OP, OP_DO_WHILE, %2, %5 ); *]
-		| WHILE '(' Expression ')' Stmt 	[* %% = createNode( NODE_OP, OP_WHILE_DO, %3, %5 ); *]
-		| FOR '(' Expression ';' Expression ';' Expression ')' Stmt 	[* %% = createNode( NODE_OP, OP_FOR, %3, %5, %7, %9 ); *]
-		| FOR '(' Identifier IN Identifier ')' Stmt 	[* %% = createNode( NODE_OP, OP_FORIN, %3, %5, %7 ); *]
-		| ECHO Expression ';'		[* %% = createNode( NODE_OP, OP_ECHO, %2 ); *]
-		| PRINT Expression ';'		[* %% = createNode( NODE_OP, OP_ECHO, %2 ); *]
-		| '{' Stmt_List '}'		[* %% = %2; *]
-		| ';'				[* %% = createNode( NODE_OP, OP_NONE ); *]
+		| WHILE '(' Expression ')' Stmt 		[* %% = createNode( NODE_OP, OP_WHILE_DO, %3, %5 ); *]
+		| FOR '(' Expression ';' Expression ';' Expression ')' Stmt
+												[* %% = createNode( NODE_OP, OP_FOR, %3, %5, %7, %9 ); *]
+		| FOR '(' Identifier IN Identifier ')' Stmt 
+												[* %% = createNode( NODE_OP, OP_FORIN, %3, %5, %7 ); *]
+		| ECHO Expression ';'					[* %% = createNode( NODE_OP, OP_ECHO, %2 ); *]
+		| PRINT Expression ';'					[* %% = createNode( NODE_OP, OP_ECHO, %2 ); *]
+		| Expression
+		| '{' Stmt_List '}'						[* %% = %2; *]
+		| ';'									[* %% = createNode( NODE_OP, OP_NONE ); *]
 		;
-				
-Expression:	Expression '==' AddSubExp	[* %% = createNode( NODE_OP, OP_EQU, %1, %3 ); *]
-		| Expression '<' AddSubExp	[* %% = createNode( NODE_OP, OP_LOT, %1, %3 ); *]
-		| Expression '>' AddSubExp	[* %% = createNode( NODE_OP, OP_GRT, %1, %3 ); *]
-		| Expression '<=' AddSubExp	[* %% = createNode( NODE_OP, OP_LOE, %1, %3 ); *]
-		| Expression '>=' AddSubExp	[* %% = createNode( NODE_OP, OP_GRE, %1, %3 ); *]
-		| Expression '!=' AddSubExp	[* %% = createNode( NODE_OP, OP_NEQ, %1, %3 ); *]
-		| Expression '?' Value ':' Value	[* %% = createNode( NODE_OP, OP_TAIRNAIRE, %1, %3, %5 ); *]
-		| Identifier '=' Expression	[* %% = createNode( NODE_OP, OP_ASSIGN, %1, %3 ); *]
-		| Identifier '=' Expression '?:' Value	[* %% = createNode( NODE_OP, OP_BINAIRE, %3, %1, %5 ); *] 
-		| AddSubExp
-		;
-		
-AddSubExp:	AddSubExp '-' MulDivExp		[* %% = createNode( NODE_OP, OP_SUB, %1, %3 ); *]
-		| AddSubExp '+' MulDivExp	[* %% = createNode( NODE_OP, OP_ADD, %1, %3 ); *]
-		| '++' Identifier	[* %% = createNode( NODE_OP, OP_INCR_POST, %2 ); *]
-		| Identifier '++'	[* %% = createNode( NODE_OP, OP_INCR_PRE, %1 ); *]
-		| '--' Identifier	[* %% = createNode( NODE_OP, OP_DECR_POST, %2 ); *]
-		| Identifier '--'	[* %% = createNode( NODE_OP, OP_DECR_PRE, %1 ); *]
-		| MulDivExp
-		;
-				
-MulDivExp:	MulDivExp '*' NegExp		[* %% = createNode( NODE_OP, OP_MUL, %1, %3 ); *]
-		| MulDivExp '/' NegExp		[* %% = createNode( NODE_OP, OP_DIV, %1, %3 ); *]
-		| NegExp
-		;
-				
-NegExp:		'-' Value			[* %% = createNode( NODE_OP, OP_NEG, %2 ); *]
+
+Expression: 
+		| Expression '?' Expression ':' Expression
+									[* %% = createNode( NODE_OP, OP_TAIRNAIRE, %1, %3, %5 ); *]
+		| Constructor
+		| Callable
+		| Assign
+		|'++' Identifier				[* %% = createNode( NODE_OP, OP_INCR_POST, %2 ); *]
+		| Identifier '++'				[* %% = createNode( NODE_OP, OP_INCR_PRE, %1 ); *]
+		| '--' Identifier				[* %% = createNode( NODE_OP, OP_DECR_POST, %2 ); *]
+		| Identifier '--'				[* %% = createNode( NODE_OP, OP_DECR_PRE, %1 ); *]
+		| operator Expression 				[* %% = createNode( NODE_OPERATOR, OPERATOR_POST, %1, %2 ); *]
+		| Expression operator				[* %% = createNode( NODE_OPERATOR, OPERATOR_PRE, %2, %1 ); *]
+		| Expression operator Expression	[* %% = createNode( NODE_OPERATOR, OPERATOR_BOTH, %2, %1, %3 ); *]
+		| Expression operator Expression operator	[* %% = createNode( NODE_OPERATOR, OPERATOR_BRAC, %2, %1, %3, %4 ); *]
 		| Value
 		;
 
-Value:		Integer				[* %% = createNode( NODE_CONST, %1 ); *]
-		| Float				[* %% = createNode( NODE_CONST, %1 ); *]
+Constructor:  CODE Identifier '(' ')' Stmt
+		| FUNCTION Identifier '(' LARGS ')' Stmt
+		| CODE '(' ')' Stmt
+		| FUNCTION '(' LARGS ')' Stmt
+		;
+
+LARGS:  LARGS ',' ARGS
+		|ARGS
+		|
+		;
+ARGS:Assign
+	|Identifier
+	;
+
+
+Callable: Identifier '('LValue')'
+		| "#" Identifier
+		;
+
+LValue : Lvalue ',' Value
+	| Value
+	|
+	;
+Assign: Identifier '=' Expression				[* %% = createNode( NODE_OP, OP_ASSIGN, %1, %3 ); *]
+		| Identifier '=' Expression '?:' Expression	[* %% = createNode( NODE_OP, OP_BINAIRE, %3, %1, %5 ); *] 
+		; 
+
+Value:	Integer					[* %% = createNode( NODE_CONST, %1 ); *]
+		| Float					[* %% = createNode( NODE_FLOAT, %1 ); *]
+		| String				[* %% = createNode( NODE_STRING, %1 ); *]
+		| Hex					[* %% = createNode( NODE_FLOAT, %1 ); *]
 		| Identifier			[* %% = createNode( NODE_VAR, %1 ); *]
-		| '(' Expression ')'		[* %% = %2; *]
+		| '(' Expression ')'	[* %% = createNode( NODE_OP,OP_NONE, %2 ); *]
 		;
 
 [*
+	exports.setVar = letvar;
+	exports.getVar = getvar;
+	exports.parseFileSync = function(file){
+		var str = require("fs").readFileSync( file ).toString("utf-8");
+		var error_cnt = 0;
+		var error_off = new Array();
+		var error_la = new Array();
+		error_cnt = __##PREFIX##parse(str, error_off, error_la);
+		return [
+			error_cnt,
+			error_off,
+			error_la
+		];
+	};
+	exports.parseFile = function(file){
+		var str = require("fs").readFileSync( file ).toString("utf-8");
+		var error_cnt = 0;
+		var error_off = new Array();
+		var error_la = new Array();
+		error_cnt = __##PREFIX##parse(str, error_off, error_la);
+		return [
+			error_cnt,
+			error_off,
+			error_la
+		];
+	};
+	exports.parse = function(str){
+		str = str.toString("utf-8");
+		var error_cnt = 0;
+		var error_off = new Array();
+		var error_la = new Array();
+		error_cnt = __##PREFIX##parse(str, error_off, error_la);
+		return [
+			error_cnt,
+			error_off,
+			error_la
+		];
+	};
 	if(process.argv.length == 3) {
 		var str = require("fs").readFileSync( process.argv[2] ).toString("utf-8");
 		var error_cnt = 0;
 		var error_off = new Array();
 		var error_la = new Array();
-	
+
 		if((error_cnt = __##PREFIX##parse(str, error_off, error_la)) > 0) {
-		    var i;
+			var i;
 		for( i = 0; i < error_cnt; i++ ) {
 			console.log( "Parse error near >" + str.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"" );
 		}
 		}
-	}
-	else {
-		console.log( 'usage: proram <filename>' );
 	}
 *]

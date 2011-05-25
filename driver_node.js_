@@ -18,7 +18,10 @@
 
 var ##PREFIX##_dbg_withtrace		= false;
 var ##PREFIX##_dbg_string			= new String();
-
+if(##PREFIX##_dbg_withtrace){
+	var fd = require("fs").openSync("##PREFIX##_dbg_withtrace.log", "w+");
+	require('fs').writeSync(fd, new Date );
+}
 function __##PREFIX##dbg_print( text )
 {
 	##PREFIX##_dbg_string += text + "\n";
@@ -100,7 +103,6 @@ function __##PREFIX##parse( src, err_off, err_la )
 	vstack.push( 0 );
 	
 	la = __##PREFIX##lex( info );
-
 	while( true )
 	{
 		act = ##ERROR##;
@@ -263,8 +265,9 @@ function __##PREFIX##parse( src, err_off, err_la )
 		}
 		
 		if( ##PREFIX##_dbg_withtrace )
-		{		
-			alert( ##PREFIX##_dbg_string );
+		{	
+				
+			require('fs').writeSync(fd, ##PREFIX##_dbg_string );
 			##PREFIX##_dbg_string = new String();
 		}
 	}
@@ -272,7 +275,8 @@ function __##PREFIX##parse( src, err_off, err_la )
 	if( ##PREFIX##_dbg_withtrace )
 	{
 		__##PREFIX##dbg_print( "\nParse complete." );
-		alert( ##PREFIX##_dbg_string );
+		require('fs').writeSync(fd, ##PREFIX##_dbg_string );
+		##PREFIX##_dbg_string = new String();
 	}
 	
 	return err_cnt;
