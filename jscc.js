@@ -1,4 +1,4 @@
-print = require("sys").puts;
+print = require("util").puts;
 _print = function(str){console.log("__PRINT__\n"+str);};
 _error = function(str){console.log("___ ERROR ___\n"+str);};
 _warning = function(str){console.log("--- WARN ---\n"+str);};

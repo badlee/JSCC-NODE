@@ -1,3 +1,4 @@
+
 [*
 //////////////////////////////////////
 // GLOBALLY USED VARS AND FUNCTIONS //
@@ -21,11 +22,11 @@ var phypeArrayObject = {
 		delete this[this.length-1];
 		this.length = this.length-1;
 	}
-};
+}
 
 function newPhypeArr() {
 	return clone(phypeArrayObject);
-};
+}
 
 // Constants used for keeping track of states and variables.
 var cons = {
@@ -35,7 +36,7 @@ var cons = {
 	arr : '.arr#',
 	obj : '.obj#',
 	unset : '.uns#'
-};
+}
 
 // State object.
 var pstate = {
@@ -105,13 +106,13 @@ var pstate = {
 	 * Keeps track of assertions.
 	 */
 	assertion : null
-};
+}
 
 var origState = clone(pstate);
 
 function resetState() {
 	pstate = clone(origState);
-};
+}
 
 
 ///////////////////
@@ -282,7 +283,7 @@ var linker = {
 		var refTable = linker.getRefTableByVal(val);
 		var prefix = linker.getConsDefByVal(val);
 		
-		pstate.symTables[scope][varName] = prefix+scope+'#'+varName;
+		pstate.symTables[scope][varName] = prefix+scope+'#'+varName
 
 		// If we are assigning an object, make a reference to the assigned object,
 		// and increment the object's reference count.
@@ -634,7 +635,7 @@ var linker = {
 
 		return num;
 	}
-};
+}
 
 
 //////////////////////////
@@ -685,7 +686,7 @@ var classLinker = {
 		// Clear attributes
 		for (var attr in classDef.attrs) {
 			var vName = attr;
-			var r = pstate.symTables['.global'][obj.objListEntry+'::'+vName];
+			var r = pstate.symTables['.global'][obj.objListEntry+'::'+vName]
 			var refTable = linker.getRefTableByConsDef(r.substring(0,5));
 			delete refTable[r.substring(5,r.length)];
 			delete pstate.symTables['.global'][obj.objListEntry+'::'+vName];
@@ -718,7 +719,7 @@ var classLinker = {
 				else throw 'Inheritance not yet supported.';
 		}
 	}
-};
+}
 
 
 
@@ -758,6 +759,7 @@ var OP_OBJ_NEW		= 13;
 var OP_OBJ_FCALL	= 14;
 var OP_OBJ_FETCH	= 15;
 var OP_ATTR_ASSIGN	= 16;
+var OP_NEW_ARR	= 17;
 
 var OP_EQU			= 30;
 var OP_NEQ			= 31;
@@ -772,13 +774,6 @@ var OP_MUL			= 39;
 var OP_NEG			= 40;
 var OP_CONCAT		= 41;
 var OP_BOOL_NEG		= 42;
-
-var OP_FOR			= 50;
-var OP_FOREACH		= 51;
-var OP_INCR_POST	= 52;
-var OP_INCR_PRE		= 53;
-var OP_DECR_POST	= 54;
-var OP_DECR_PRE		= 55;
 
 // Moderation types
 var MOD_PUBLIC		= 0;
@@ -956,18 +951,6 @@ ops[OP_IF_ELSE] = function(node) {
 		return execute( node.children[2] );
 };
 
-// OP_FOR
-ops[OP_FOR] = function(node){
-	execute( node.children[0] );
-	var tmp = execute( node.children[1] );
-	var i=0;
-	while( tmp.value && i<12 ) {
-		execute( node.children[2] );
-		execute( node.children[3] );
-		tmp = execute( node.children[1] );
-		i++;
-	}
-};
 // OP_WHILE_DO
 ops[OP_WHILE_DO] = function(node) {
 	var tmp = execute( node.children[0] );
@@ -1128,6 +1111,9 @@ ops[OP_ASSIGN_ARR] = function(node) {
 		linker.assignArr( varName, keys, value );
 	
 	return value;
+};
+ops[OP_NEW_ARR] = function(node) {
+	return createValue( T_ARRAY, {} );;
 };
 
 // OP_FETCH_ARR
@@ -1479,113 +1465,7 @@ ops[OP_LOE] = function(node) {
 	else
 		resultNode = createValue(T_INT, 0);
 	return resultNode;
-};
-// OP_INCR_POST
-ops[OP_INCR_POST] = function(node) {
-
-	// Look up potentially recursive variable name
-	var varName = linker.linkRecursively(node.children[0]);
-
-	// Check if the variable we are trying to assign to already contains an object;
-	// decrement the reference count for the object if this is the case.
-	var oldVal = null;
-	try {
-		oldVal = linker.getValue(varName);
-	} catch (exception) {
-		if (exception!=varNotFound(varName))
-			throw exception;
-		else
-			oldVal = false;
-	}
-	var leftChild = execute(node.children[0]);
-	var leftValue;
-	var type = T_INT;
-	switch (leftChild.type) {
-		// TODO: Check for PHP-standard.
-		case T_INT:
-		case T_CONST:
-			leftValue = parseInt(leftChild.value);
-			break;
-		case T_FLOAT:
-			leftValue = parseFloat(leftChild.value);
-			type = T_FLOAT;
-			break;
-	}
-	//Incrementation
-	var result = leftValue + 1;
-	execute( createNode( NODE_OP, OP_ASSIGN, varName, createValue( type, result ) ) );
-
-	return createValue(type, result);
-};
-
-// OP_INCR_PRE
-ops[OP_INCR_PRE] = function(node) {
-	var leftChild = execute(node.children[0]);
-	var leftValue = leftChild.value;
-	var type = T_INT;
-	switch (leftChild.type) {
-		// TODO: Check for PHP-standard.
-		default:
-		case T_INT:
-		case T_CONST:
-			leftValue = parseInt(leftChild.value);
-			break;
-		case T_FLOAT:
-			leftValue = parseFloat(leftChild.value);
-			type = T_FLOAT;
-			break;		
-	}
-	var result = leftValue ;
-	//Incrementation
-	execute( createNode( NODE_OP, OP_ASSIGN, varName, createValue( type, result+1 ) ) );
-	return createValue(type, result);
-};
-
-// OP_DECR_POST
-ops[OP_DECR_POST] = function(node) {
-	var leftChild = execute(node.children[0]);
-	var leftValue;
-	var type = T_INT;
-	switch (leftChild.type) {
-		// TODO: Check for PHP-standard.
-		case T_INT:
-		case T_CONST:
-			leftValue = parseInt(leftChild.value);
-			break;
-		case T_FLOAT:
-			leftValue = parseFloat(leftChild.value);
-			type = T_FLOAT;
-			break;
-	}
-	//Incrementation
-	var result = leftValue - 1;
-	execute( createNode( NODE_OP, OP_ASSIGN, varName, createValue( type, result ) ) );
-
-	return createValue(type, result);
-};
-
-// OP_DECR_PRE
-ops[OP_DECR_PRE] = function(node) {
-	var leftChild = execute(node.children[0]);
-	var leftValue = leftChild.value;
-	var type = T_INT;
-	switch (leftChild.type) {
-		// TODO: Check for PHP-standard.
-		default:
-		case T_INT:
-		case T_CONST:
-			leftValue = parseInt(leftChild.value);
-			break;
-		case T_FLOAT:
-			leftValue = parseFloat(leftChild.value);
-			type = T_FLOAT;
-			break;		
-	}
-	var result = leftValue ;
-	//Incrementation
-	execute( createNode( NODE_OP, OP_ASSIGN, varName, createValue( type, result - 1 ) ) );
-	return createValue(type, result);
-};
+},
 
 // OP_ADD
 ops[OP_ADD] = function(node) {
@@ -1802,13 +1682,12 @@ function execute( node ) {
 
 *]
 
-!	' |\r|\n|\t|\/\*[^\*\/]*\*\/'
+!	' |\n|\r|\t|\\( assertEcho ((\'[^\']*\')|("[^"]*"))\s*$| assertFail\s*$)'
 
 	"IF"
 	"ELSE"
 	"WHILE"
 	"DO"
-	"FOR"
 	"ECHO"
 	"RETURN"
 	"NEW"							NewToken
@@ -1834,9 +1713,7 @@ function execute( node ) {
 	'>'
 	'<'
 	'\+'
-	'\+\+'
 	'\-'
-	'\-\-'
 	'/'
 	'\*'
 	'\('
@@ -1866,12 +1743,25 @@ function execute( node ) {
 	'[0-9]+\.[0-9]*|[0-9]*\.[0-9]+'	Float
 	'[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
 									Identifier
+	'<(\?php|\?)'							ScriptBegin
+	'\?>(([^<\?])|<[^\?])*'			ScriptEnd
+	'\?>(([^<(\?php|\?)])|<[^(\?php|\?)])*<\?'		InternalNonScript
 	;
 
 ##
 
-PHPScript:	PHPScript Stmt [*	execute( %2 );	*]
+PHPScript:	PHPScript Script
 		|
+		;
+		
+Script: 	ScriptBegin Stmt ScriptEnd
+										[*	
+											execute( %2 );
+											if (%3.length > 2) {
+												var strNode = createNode( NODE_CONST, %3.substring(2,%3.length) );
+												execute( createNode( NODE_OP, OP_ECHO, strNode ) );
+											}
+										*]
 		;
 		
 ClassDefinition:
@@ -1952,7 +1842,6 @@ SingleStmt:	Return ';'
 		|	IF Expression SingleStmt ELSE SingleStmt	
 										[* %% = createNode( NODE_OP, OP_IF_ELSE, %2, %3, %5 ); *]
 		|	WHILE Expression SingleStmt	[* %% = createNode( NODE_OP, OP_WHILE_DO, %2, %3 ); *]
-		|	FOR '(' Expression ';' Expression ';' Expression ')' SingleStmt	[* %% = createNode( NODE_OP, OP_FOR, %3, %5, %7, %9 ); *]
 		|	DO SingleStmt WHILE Expression ';'
 										[* %% = createNode( NODE_OP, OP_DO_WHILE, %2, %4 ); *]
 		|	ECHO Expression ';'			[* %% = createNode( NODE_OP, OP_ECHO, %2 ); *]
@@ -1965,12 +1854,33 @@ Stmt:		Stmt Stmt					[* %% = createNode ( NODE_OP, OP_NONE, %1, %2 ); *]
 		|	SingleStmt
 		|	ClassDefinition
 		|	FunctionDefinition
+		|	InternalNonScript			[* 
+											if (%1.length > 4) {
+												var strNode = createNode( NODE_CONST, %1.substring(2,%1.length-2) );
+												%% = createNode( NODE_OP, OP_ECHO, strNode );
+											}
+										*]
+		|	'//' AssertStmt				[* %% = %2; *]
 		;
 
 AssignmentStmt:
 			Variable '=' Expression		[* %% = createNode( NODE_OP, OP_ASSIGN, %1, %3 ); *]
 		|	LValue '->' AttributeAccess '=' Expression
 										[* %% = createNode( NODE_OP, OP_ATTR_ASSIGN, %1, %3, %5 ); *]
+		;
+
+AssertStmt:	Identifier String
+										[*	
+											if (phypeTestSuite && %1 == "assertEcho") {
+												pstate.assertion = createAssertion( ASS_ECHO, %2 );
+											}
+										*]
+		|	Identifier					[*
+											if (phypeTestSuite && %1 == "assertFail") {
+												pstate.assertion = createAssertion( ASS_FAIL, 0 );
+											}
+										*]
+		|
 		;
 		
 FormalParameterList:
@@ -2015,11 +1925,11 @@ ExpressionNotFunAccess:
 LValue:		MemberAccess
 		|	VarVal
 		|	VarVal ArrayIndices			[* %% = createNode( NODE_OP, OP_FETCH_ARR, %1, %2 ); *]
+		|   '\[' '\]'					[* %% = createNode(NODE_OP, OP_NEW_ARR ); *]
 		;
 		
 Expression:	ExpressionNotFunAccess
 		|	FunctionAccess
-		|
 		;
 
 FunctionInvoke:
@@ -2071,10 +1981,6 @@ BinaryExp:	BinaryExp '==' Expression	[* %% = createNode( NODE_OP, OP_EQU, %1, %3
 
 AddSubExp:	AddSubExp '-' MulDivExp		[* %% = createNode( NODE_OP, OP_SUB, %1, %3 ); *]
 		|	AddSubExp '+' MulDivExp		[* %% = createNode( NODE_OP, OP_ADD, %1, %3 ); *]
-		|	Variable '++'				[* %% = createNode( NODE_OP, OP_INCR_PRE, %1 ); *]
-		|	'++' Variable				[* %% = createNode( NODE_OP, OP_INCR_POST, %2 ); *]
-		|	Variable '--'				[* %% = createNode( NODE_OP, OP_DECR_PRE, %1 ); *]
-		|	'--' Variable				[* %% = createNode( NODE_OP, OP_DECR_POST, %2 ); *]
 		|	'(' AddSubExp ')'			[* %% = %2; *]
 		|	MulDivExp
 		;
@@ -2102,7 +2008,250 @@ Value:		VarVal
 		;
 
 [*
-	var phypeOut = console.log;
+
+//////////////////////
+// PHYPE I/O-CHECKS //
+//////////////////////
+if (!phypeIn || phypeIn == 'undefined') {
+	var phypeIn = function() {
+		// Running from V8 or another shell JS-app
+		if (typeof(alert) == 'undefined') {
+			return '';
+		}
+		// Running from browser
+		else
+			return prompt( "Please enter a PHP-script to be executed:",
+			//	"<? $a[1] = 'foo'; $foo = 'bar'; echo $a[1].$foo; ?>"
+				//"<? $a=1; $b=2; $c=3; echo 'starting'; if ($a+$b == 3){ $r = $r + 1; if ($c-$b > 0) { $r = $r + 1; if ($c*$b < 7) {	$r = $r + 1; if ($c*$a+$c == 6) { $r = $r + 1; if ($c*$c/$b <= 5) echo $r; }}}} echo 'Done'; echo $r;?>"
+				//"<? $a[0]['d'] = 'hej'; $a[0][1] = '!'; $b = $a; $c = $a; $b[0] = 'verden'; echo $a[0]['d']; echo $b[0]; echo $c[0][1]; echo $c[0]; echo $c; if ($c) { ?>C er sat<? } ?>"
+				"<?" +
+				"function get42() {" +
+				"	return 42;" +
+				"}" +
+				"$crazy = 1*get42()-(get42()/2)+42-21;" +
+				"echo $crazy;" +
+				"?>"
+			);
+	};
+}
+
+// Set phypeOut if it is not set.
+if (!phypeOut || phypeOut == 'undefined') {
+	// Running from V8 or another shell JS-app
+	if (typeof(alert) == 'undefined')
+		var phypeOut = function() {};//print;
+	else // Running from browser
+		var phypeOut = alert;
+}
+
+/**
+ * Creates an echo with non-PHP character data that precedes the first php-tag.
+ */
+function preParse(str) {
+	var firstPhp = str.indexOf('<?');
+	var res = '';
+	if (firstPhp > 0 || firstPhp == -1) {
+		if (firstPhp == -1) firstPhp = str.length;
+		var echoStr = '<? ';
+		echoStr += "echo '"+str.substring(0,firstPhp).replace("'","\'")+"';";
+		echoStr += ' ?>';
+		res = echoStr+str.substring(firstPhp,str.length);
+	} else {
+		res = str;
+	}
+	
+	return res
+}
+
+function interpret(str) {
+	var error_cnt 	= 0;
+	var error_off	= new Array();
+	var error_la	= new Array();
+	
+	if( ( error_cnt = __parse( preParse(str), error_off, error_la ) ) > 0 ) {
+		for(var i=0; i<error_cnt; i++)
+			phypeOut( "Parse error near >" 
+				+ str.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"<br/>\n" );
+	}
+}
+
+/////////////
+// PARSING //
+/////////////
+
+// If we are not in our test suite, load all the scripts all at once.
+if (!phypeTestSuite && !fromShell) {
+	var str = phypeIn();
+	
+	interpret(str);
+
+	if (phypeDoc && phypeDoc.open) {
+		phypeDoc.close();
+	}
+}
+// If we are, parse it accordingly
+else if (phpScripts && !fromShell) {
+	var phypeTestDoc;
+
+	phypeTestDoc.write('<table style="border-collapse: collapse; border: 1px solid DarkRed; background-color: Bisque;">\n');
+	phypeTestDoc.write('<tr>\n');
+	phypeTestDoc.write('<th style="border-collapse: collapse; border: 1px solid DarkRed; background-color: Brown; color: Bisque;">Test case</th>\n');
+	phypeTestDoc.write('<th style="border-collapse: collapse; border: 1px solid DarkRed; background-color: Brown; color: Bisque;">Time</th>\n');
+	phypeTestDoc.write('<th style="border-collapse: collapse; border: 1px solid DarkRed; background-color: Brown; color: Bisque;">Status</th>\n');
+	phypeTestDoc.write('</tr>\n');
+	
+	for (var i=0; i<phpScripts.length; i++) {
+		var script = phpScripts[i];
+
+		// HACK: It doesn't work unless we parse it once before our actual parse ...
+		if (i>0) interpret( script.code );
+		resetState();
+		
+		phypeEcho = '';
+		
+		var failed = false;
+		var thrownException = null;
+		var secs = 'Unknown';
+		try {
+			var begin = new Date();
+			interpret(script.code);
+			var end = new Date();
+			secs = ((end.getTime() - begin.getTime())/1000)+" sec";
+		} catch(exception) {
+			failed = true;
+			thrownException = exception;
+		}
+		
+		if (pstate.assertion) {
+			phypeTestDoc.write('<tr style="border-bottom: 1px solid gray;">\n');
+			phypeTestDoc.writeTitle(script.name);
+			phypeTestDoc.writeExecTime(secs);
+			switch (pstate.assertion.type) {
+				case ASS_ECHO:
+ 					if (thrownException)
+						phypeTestDoc.writeStatus('fail', 'Thrown exception: '+thrownException);
+					else if (phypeEcho != pstate.assertion.value) {
+						phypeTestDoc.writeStatus('fail', 'Expected output: "'+pstate.assertion.value +
+											'". Actual output: "'+phypeEcho+'".\n<br/>');
+					} else {
+						phypeTestDoc.writeStatus('pass', 'OK');
+					}
+					break;
+				case ASS_FAIL:
+					if (!failed)
+						phypeTestDoc.writeStatus('fail','Expected script to fail,'+
+								' but no exceptions were raised.<br/>\n<br/>\n');
+					else {
+						phypeTestDoc.writeStatus('pass', OK);
+					}
+					break;
+			}
+			pstate.assertion = null;
+			phypeTestDoc.write('</tr>\n');
+		}
+	}
+	phypeTestDoc.write('</table>\n');
+	if (phypeTestDoc.open) {
+		phypeTestDoc.write('Testing done!');
+		phypeTestDoc.close();
+	}
+}
+
+///////////////
+// DEBUGGING //
+///////////////
+/**
+ * Borrowed from http://snippets.dzone.com/posts/show/4296
+ */
+function var_dump(data,addwhitespace,safety,level) {
+	var rtrn = '';
+	var dt,it,spaces = '';
+	if(!level) {level = 1;}
+	for(var i=0; i<level; i++) {
+		spaces += '   ';
+	}//end for i<level
+	if(typeof(data) != 'object') {
+		dt = data;
+		if(typeof(data) == 'string') {
+			if(addwhitespace == 'html') {
+				dt = dt.replace(/&/g,'&amp;');
+				dt = dt.replace(/>/g,'&gt;');
+				dt = dt.replace(/</g,'&lt;');
+			}//end if addwhitespace == html
+			dt = dt.replace(/\"/g,'\"');
+			dt = '"' + dt + '"';
+		}//end if typeof == string
+		if(typeof(data) == 'function' && addwhitespace) {
+			dt = new String(dt).replace(/\n/g,"<br/>"+spaces);
+			if(addwhitespace == 'html') {
+				dt = dt.replace(/&/g,'&amp;');
+				dt = dt.replace(/>/g,'&gt;');
+				dt = dt.replace(/</g,'&lt;');
+			}//end if addwhitespace == html
+		}//end if typeof == function
+		if(typeof(data) == 'undefined') {
+			dt = 'undefined';
+		}//end if typeof == undefined
+		if(addwhitespace == 'html') {
+			if(typeof(dt) != 'string') {
+				dt = new String(dt);
+			}//end typeof != string
+			dt = dt.replace(/ /g,"&nbsp;").replace(/\n/g,"<br/>");
+		}//end if addwhitespace == html
+		return dt;
+	}//end if typeof != object && != array
+	for (var x in data) {
+		if(safety && (level > safety)) {
+			dt = '*RECURSION*';
+		} else {
+			try {
+			dt = var_dump(data[x],addwhitespace,safety,level+1);
+			} catch (e) {continue;}
+		}//end if-else level > safety
+		it = var_dump(x,addwhitespace,safety,level+1);
+		rtrn += it + ':' + dt + ',';
+		if(addwhitespace) {
+			rtrn += '<br/>'+spaces;
+		}//end if addwhitespace
+	}//end for...in
+	if(addwhitespace) {
+		rtrn = '{<br/>' + spaces + rtrn.substr(0,rtrn.length-(2+(level*3))) + '<br/>' +
+					spaces.substr(0,spaces.length-3) + '}';
+	} else {
+		rtrn = '{' + rtrn.substr(0,rtrn.length-1) + '}';
+	}//end if-else addwhitespace
+	if(addwhitespace == 'html') {
+		rtrn = rtrn.replace(/ /g,"&nbsp;").replace(/\n/g,"<br/>");
+	}//end if addwhitespace == html
+	return rtrn;
+}
+
+/**
+ * Borrowed from http://ajaxcookbook.org/javascript-debug-log/
+ */
+function log(message) {
+	if (!log.window_ || log.window_.closed) {
+		var win = window.open("", null, "width=600,height=400," +
+							"scrollbars=yes,resizable=yes,status=no," +
+							"location=no,menubar=no,toolbar=no");
+		if (!win) return;
+		var doc = win.document;
+		doc.write("<html><head><title>Debug Log</title></head>" +
+				"<body></body></html>");
+		doc.close();
+		log.window_ = win;
+	}
+	var logLine = log.window_.document.createElement("div");
+	logLine.appendChild(log.window_.document.createTextNode(message));
+	log.window_.document.body.appendChild(logLine);
+}
+
+function var_log(variable) {
+	log(var_dump(variable));
+}
+*]
+[*
+	var phypeOut = require("util").puts;
 	function preParse(str) {
 		return str;
 		var firstPhp = str.indexOf('<?');
