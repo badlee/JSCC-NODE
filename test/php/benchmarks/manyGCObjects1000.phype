@@ -1,0 +1,20 @@
+<?
+// assertEcho 'hello world'
+class testGC1000 {
+	function hi() {
+		return 'hello world';
+	}
+}
+
+$i = 0;
+$varName = 'test';
+while ($i < 1000) {
+	$$varName = '';
+	$varName = 'test'.$i;
+	$$varName = new testGC1000();
+	$$varName = '';
+	$i = $i+1;
+}
+
+echo 'hello world';
+?>

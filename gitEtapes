@@ -1,0 +1,3 @@
+cd existing_git_repo
+git commit -a -m 'port JS/CC to nodejs'
+git push -u origin master

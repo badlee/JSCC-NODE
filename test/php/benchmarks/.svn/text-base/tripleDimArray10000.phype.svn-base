@@ -1,0 +1,18 @@
+<?
+// assertEcho 'hello world'
+$i = 0;
+$j = 0;
+$k = 0;
+while ($i < 10000) {
+	while ($j < 10000) {
+		while ($k < 10000) {
+			$arr[$i][$j][$k] = 'hello world';
+			$i = $i+1;
+			$j = $j+1;
+			$k = $k+1;
+		}
+	}
+}
+echo $arr[9999][9999][9999];
+
+?>

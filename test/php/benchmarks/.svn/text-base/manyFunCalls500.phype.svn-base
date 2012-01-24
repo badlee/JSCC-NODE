@@ -1,0 +1,28 @@
+<?
+// assertEcho '42'
+function theAnswer500($a) {
+	$b = $a;
+	$a = $a/$b;
+	$a = $a*20+22;
+	
+	return $a;
+}
+
+$tmp = 0;
+$i = 0;
+while ($i < 500) {
+	$var = 0;
+	$tmp = theAnswer500(1);
+	$var = $var+$tmp;
+	$tmp = theAnswer500(1);
+	$var = $var+$tmp;
+	$tmp = theAnswer500(1);
+	$var = $var+$tmp;
+	$tmp = theAnswer500(1);
+	$var = ($var+$tmp);
+	$var = $var/4;
+	$i = $i+1;
+}
+
+echo $var;
+?>

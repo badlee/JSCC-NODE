@@ -1,0 +1,19 @@
+<?
+// assertEcho 'hello world'
+class test5000 {
+	function hi() {
+		return 'hello world';
+	}
+}
+
+$i = 0;
+$varName = 'test';
+while ($i < 5000) {
+	$$varName = '';
+	$varName = 'test'.$i;
+	$$varName = new test5000();
+	$i = $i+1;
+}
+
+echo $test4999->hi();
+?>
