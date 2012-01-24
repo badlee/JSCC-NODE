@@ -17,25 +17,20 @@
 	
 	
 [*
-process.stdin.resume();
-read_string = function(){
-		var stdIn = {
-			start : "",
-			data  : ""
-		};
+//process.stdin.resume();
+var read_string_exec = false,
+  read_string_node = false ;
+  
+read_string = function(fn){
 		process.stdin.resume();
-		process.stdin.removeAllListeners();
 		process.stdin.setEncoding('utf8');
-		process.stdin.on('data', function (chunk) { process.stdout.write('data: ' + chunk); });
-		var i=0;
-		while(stdIn.start==""){console.log(i++);};
-		console.log("ds : "+stdIn.start);
-		process.stdin.pause();
-		var data = stdIn.start;
-		stdIn.start = "";
-		return data;
+		process.stdout.write(" > ");
+		process.stdin.on('data', function (chunk) {
+		 	fn(chunk);
+		 	process.stdin.pause();
+		});
 };
-process.stdin.pause();
+//process.stdin.pause();
 //Structs
 function NODE()
 {
@@ -117,6 +112,11 @@ function getvar( vname )
 
 function execute( node )
 {
+
+	if(read_string_exec){
+		process.nextTick(function(){try{execute( node );}catch(e){};},1000);
+		throw "Wait";
+	}
 	var ret = 0;
 	
 	if( !node )
@@ -156,13 +156,14 @@ function execute( node )
 					while( execute( node.children[1] ) );
 					break;
 				case OP_WRITE:
-					console.log( execute( node.children[0] ) );
+					require('util').print( execute( node.children[0] ) );
 					break;
 				case OP_READ:
-					letvar( node.children[0].toString(), read_string() );
+					read_string_exec = true;
+					read_string(function(val){read_string_exec = false;letvar( node.children[0].toString(), val);});
 					break;
 				case OP_SAY:
-					console.log( node.children[0] );
+					require('util').print( node.children[0].replace("\\n","\n") );
 					break;
 				case OP_EQU:
 					ret = execute( node.children[0] ) == execute( node.children[1] );
@@ -208,7 +209,6 @@ function execute( node )
 			ret = Number( node.value );
 			break;
 	}
-	
 	return ret;
 }
 
@@ -250,7 +250,7 @@ function execute( node )
 
 ##
 
-Program:		Program Stmt										[* execute( %2 ); *]
+Program:		Program Stmt										[* try{execute( %2 );}catch(e){}; *]
 				|
 				;
 
@@ -308,9 +308,9 @@ Value:			Integer												[* %% = createNode( NODE_CONST, %1 ); *]
 	
 		if((error_cnt = __##PREFIX##parse(str, error_off, error_la)) > 0) {
 		    var i;
-		for( i = 0; i < error_cnt; i++ ) {
-			console.log( "Parse error near >" + str.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"" );
-		}
+			for( i = 0; i < error_cnt; i++ ) {
+				console.log( "Parse error near >" + str.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"" );
+			}
 		}
 	}
 	else {

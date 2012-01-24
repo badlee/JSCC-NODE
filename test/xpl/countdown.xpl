@@ -1,22 +1,18 @@
 //A rocketry launch countdown ;)
-say '--- The final countdown progam ---';
+say '--- The final countdown progam ---\n';
 
-do
-{
-	say 'Enter your starting number (it must be greater or equal 10!):';
-	read count;
+say 'Enter your starting number :';
+read count;
 
-	if count < 10 say 'The number is lower 10!';
-}
-while count < 10;
 
-say 'Starting sequence...';
+
+say 'Starting sequence...\n';
 while count >= 0 do
 {
-	write count;
-
+	write count;say '\n';
 	//Ignition at 3 loops before lift-off...
-	if count == 3 say 'Ignition...';
-	else if count == 0 say '...and lift-off!';
+	if count == 3 say 'Ignition...\n';
+	else if count == 0 say '...and lift-off!\n';
 	count = count - 1;
 }
+say 'end';
