@@ -2044,36 +2044,6 @@ if (!phypeOut || phypeOut == 'undefined') {
 		var phypeOut = alert;
 }
 
-/**
- * Creates an echo with non-PHP character data that precedes the first php-tag.
- */
-function preParse(str) {
-	var firstPhp = str.indexOf('<?');
-	var res = '';
-	if (firstPhp > 0 || firstPhp == -1) {
-		if (firstPhp == -1) firstPhp = str.length;
-		var echoStr = '<? ';
-		echoStr += "echo '"+str.substring(0,firstPhp).replace("'","\'")+"';";
-		echoStr += ' ?>';
-		res = echoStr+str.substring(firstPhp,str.length);
-	} else {
-		res = str;
-	}
-	
-	return res
-}
-
-function interpret(str) {
-	var error_cnt 	= 0;
-	var error_off	= new Array();
-	var error_la	= new Array();
-	
-	if( ( error_cnt = __parse( preParse(str), error_off, error_la ) ) > 0 ) {
-		for(var i=0; i<error_cnt; i++)
-			phypeOut( "Parse error near >" 
-				+ str.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"<br/>\n" );
-	}
-}
 
 /////////////
 // PARSING //
