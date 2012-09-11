@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 print = require("util").puts;
 _print = function(str){console.log("__PRINT__\n"+str);};
 _error = function(str){console.log("___ ERROR ___\n"+str);};
@@ -4541,7 +4542,7 @@ function help()
 //Initialize the globals
 reset_all( EXEC_CONSOLE );
 
-DEFAULT_DRIVER = "driver_node.js_";
+DEFAULT_DRIVER =  __dirname + "/../lib/driver_node.js_";
 
 
 //Processing the command line arguments
