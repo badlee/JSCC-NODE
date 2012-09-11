@@ -18,7 +18,7 @@ For all documentation read the `jscc_manual.pdf` in doc/ folder.
 
 ## HOW TO USE
 	
-	node jscc.js [options] filename
+	jscc [options] filename
 
 ## OPTIONS
 
