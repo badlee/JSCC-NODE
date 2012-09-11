@@ -13,6 +13,7 @@
 	}
 	, "os": [ "linux", "darwin", "freebsd", "win32" ]
 	, "directories": {  }
+	, "preferGlobal": true
 	, "bin": { "jscc": "./bin/jscc" }
 	, "engines": { "node": ">=0.4.7" }
 	, "licenses": [{
