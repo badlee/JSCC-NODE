@@ -16,9 +16,15 @@ To use JS/CC and for understanding its internals and behaviors, some knowledge o
 
 For all documentation read the `jscc_manual.pdf` in doc/ folder.
 
+## Installation
+
+	npm install jscc-node
+
+This install a jscc binary inside your node path, that you can run from the shell
+
 ## HOW TO USE
 	
-	node jscc.js [options] filename
+	jscc [options] filename
 
 ## OPTIONS
 
