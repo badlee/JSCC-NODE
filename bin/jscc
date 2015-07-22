@@ -1561,6 +1561,8 @@ function lalr1_closure( s )
 			
 			if( j == states[s].epsilon.length )			
 				states[s].epsilon.push( closure[i] );
+			else
+				states[s].epsilon[j] = closure[i];
 
 			closure.splice( i, 1 );
 		}
